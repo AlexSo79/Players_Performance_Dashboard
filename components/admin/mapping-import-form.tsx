@@ -44,6 +44,12 @@ const DB_COLUMNS = [
     { label: '% Dist MP HI', value: 'pct_distance_mphi' },
     { label: 'Dist > 80% Max', value: 'distance_over_80_pct_max_speed' },
     { label: 'Dist > 90% Max', value: 'distance_over_90_pct_max_speed' },
+    { label: 'Player Load', value: 'player_load' },
+    { label: 'Dist > 14.4km/h', value: 'distance_over_14_4_kmh' },
+    { label: 'Dist > 21km/h', value: 'distance_over_21_kmh' },
+    { label: 'Dist > 25 W/kg', value: 'distance_over_25_w_kg' },
+    { label: '# Acc > 3m/s', value: 'number_acc_over_3_ms' },
+    { label: '# Dec < -3m/s', value: 'number_dec_under_minus_3_ms' },
 ]
 
 interface MappingImportFormProps {

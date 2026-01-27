@@ -46,9 +46,13 @@ const statsSchema = z.object({
     equivalent_relative_distance: z.coerce.number().default(0),
     pct_equivalent_relative_distance: z.coerce.number().default(0),
     pct_ai: z.coerce.number().default(0),
+    player_load: z.coerce.number().default(0),
+    distance_over_25_w_kg: z.coerce.number().default(0),
 
     // High Intensity
+    distance_over_14_4_kmh: z.coerce.number().default(0),
     distance_over_20_kmh: z.coerce.number().default(0),
+    distance_over_21_kmh: z.coerce.number().default(0),
     distance_over_25_kmh: z.coerce.number().default(0),
     number_acc_over_25_kmh: z.coerce.number().default(0),
     distance_hi_min: z.coerce.number().default(0),
@@ -61,6 +65,8 @@ const statsSchema = z.object({
     distance_dece_hi_min: z.coerce.number().default(0),
     pct_distance_acc_hi: z.coerce.number().default(0),
     pct_distance_dec_hi: z.coerce.number().default(0),
+    number_acc_over_3_ms: z.coerce.number().default(0),
+    number_dec_under_minus_3_ms: z.coerce.number().default(0),
 
     // Other
     distance_mphi: z.coerce.number().default(0),
@@ -255,11 +261,15 @@ export function StatsForm({ onSuccess, initialData }: StatsFormProps) {
                         {renderField("equivalent_relative_distance", "Eq. Rel. Dist")}
                         {renderField("pct_equivalent_relative_distance", "% Eq. Rel. Dist")}
                         {renderField("pct_ai", "Anaerobic Index %")}
+                        {renderField("player_load", "Player Load")}
+                        {renderField("distance_over_25_w_kg", "Dist > 25 W/kg")}
                     </div>
 
                     <h3 className="font-semibold border-b pb-1">High Intensity</h3>
                     <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+                        {renderField("distance_over_14_4_kmh", "Dist > 14.4 km/h")}
                         {renderField("distance_over_20_kmh", "Dist > 20km/h")}
+                        {renderField("distance_over_21_kmh", "Dist > 21 km/h")}
                         {renderField("distance_over_25_kmh", "Dist > 25km/h")}
                         {renderField("number_acc_over_25_kmh", "# Acc > 2.5", "1")}
                         {renderField("distance_hi_min", "HI Dist/Min")}
@@ -276,6 +286,8 @@ export function StatsForm({ onSuccess, initialData }: StatsFormProps) {
                         {renderField("distance_dece_hi_min", "Dec HI/Min")}
                         {renderField("pct_distance_acc_hi", "% Acc HI")}
                         {renderField("pct_distance_dec_hi", "% Dec HI")}
+                        {renderField("number_acc_over_3_ms", "# Acc > 3 m/s")}
+                        {renderField("number_dec_under_minus_3_ms", "# Dec < -3 m/s")}
                     </div>
 
                     <h3 className="font-semibold border-b pb-1">Thresholds</h3>

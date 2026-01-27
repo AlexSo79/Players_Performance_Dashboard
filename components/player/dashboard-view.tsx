@@ -50,6 +50,9 @@ const METRIC_CONFIG = [
     { label: '% Sprint of HI', key: 'pct_distance_sprint_hi', unit: '%', category: 'Intensity' },
     { label: 'Dist > 80% Max', key: 'distance_over_80_pct_max_speed', unit: 'm', category: 'Intensity' },
     { label: 'Dist > 90% Max', key: 'distance_over_90_pct_max_speed', unit: 'm', category: 'Intensity' },
+    { label: 'Dist > 14.4km/h', key: 'distance_over_14_4_kmh', unit: 'm', category: 'Intensity' },
+    { label: 'Dist > 21km/h', key: 'distance_over_21_kmh', unit: 'm', category: 'Intensity' },
+    { label: 'Dist > 25 W/kg', key: 'distance_over_25_w_kg', unit: 'm', category: 'Intensity' },
 
     // Accelerations
     { label: '# Acc > 2.5', key: 'number_acc_over_25_kmh', unit: '', category: 'Accelerations' },
@@ -65,7 +68,10 @@ const METRIC_CONFIG = [
     { label: 'Strength Index', key: 'strength_index', unit: '%', category: 'Load' },
     { label: 'EEE', key: 'eee', unit: 'kJ', category: 'Load' },
     { label: 'AMP', key: 'amp', unit: 'W/kg', category: 'Load' },
+    { label: 'Player Load', key: 'player_load', unit: 'AU', category: 'Load' },
     { label: 'Anaerobic Index %', key: 'pct_ai', unit: '%', category: 'Load' },
+    { label: '# Acc > 3m/s', key: 'number_acc_over_3_ms', unit: '', category: 'Accelerations' },
+    { label: '# Dec < -3m/s', key: 'number_dec_under_minus_3_ms', unit: '', category: 'Accelerations' },
     { label: 'Dist MP HI', key: 'distance_mphi', unit: 'm', category: 'Load' },
     { label: '% Dist MP HI', key: 'pct_distance_mphi', unit: '%', category: 'Load' },
 ]

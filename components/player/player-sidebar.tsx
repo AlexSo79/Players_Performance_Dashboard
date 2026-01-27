@@ -23,7 +23,7 @@ export function PlayerSidebar() {
     const pathname = usePathname()
 
     return (
-        <div className="pb-12 min-h-screen w-64 border-r bg-white dark:bg-gray-950 hidden md:block">
+        <div className="pb-12 min-h-screen w-64 border-r bg-white dark:bg-gray-950">
             <div className="space-y-4 py-4">
                 <div className="px-3 py-2">
                     <div className="flex items-center gap-2 mb-8 px-4">

@@ -91,6 +91,12 @@ export function LoginForm() {
 }
 
 function HookFormLogin({ onSubmit, isLoading }: { onSubmit: (v: z.infer<typeof formSchema>) => void, isLoading: boolean }) {
+    const [isMounted, setIsMounted] = React.useState(false)
+
+    React.useEffect(() => {
+        setIsMounted(true)
+    }, [])
+
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -98,6 +104,10 @@ function HookFormLogin({ onSubmit, isLoading }: { onSubmit: (v: z.infer<typeof f
             password: '',
         },
     })
+
+    if (!isMounted) {
+        return null
+    }
 
     return (
         <Form {...form}>

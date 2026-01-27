@@ -52,7 +52,13 @@ export default function GameEventsPage() {
             console.error('Error fetching game events:', error)
             toast.error('Failed to fetch game events')
         } else {
-            setEvents(data || [])
+            // Sort by match date descending
+            const sortedData = (data || []).sort((a, b) => {
+                const dateA = new Date(a.matches?.date || 0).getTime()
+                const dateB = new Date(b.matches?.date || 0).getTime()
+                return dateB - dateA
+            })
+            setEvents(sortedData)
             setSelectedIds(new Set())
         }
     }, [supabase])
@@ -252,7 +258,7 @@ export default function GameEventsPage() {
                                         {evt.profiles?.full_name || evt.profiles?.email}
                                     </TableCell>
                                     <TableCell>
-                                        {evt.matches ? `${format(new Date(evt.matches.date), 'MM/dd')} vs ${evt.matches.opponent}` : '-'}
+                                        {evt.matches ? `${format(new Date(evt.matches.date), 'yyyy/MM/dd')} vs ${evt.matches.opponent}` : '-'}
                                     </TableCell>
                                     <TableCell>{evt.position || '-'}</TableCell>
                                     <TableCell>{evt.minutes_played}</TableCell>

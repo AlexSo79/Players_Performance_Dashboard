@@ -51,7 +51,13 @@ export default function StatsPage() {
         if (error) {
             console.error('Error fetching stats:', error)
         } else {
-            setStats(data || [])
+            // Sort by match date descending
+            const sortedData = (data || []).sort((a, b) => {
+                const dateA = new Date(a.matches?.date || 0).getTime()
+                const dateB = new Date(b.matches?.date || 0).getTime()
+                return dateB - dateA
+            })
+            setStats(sortedData)
             setSelectedIds(new Set()) // Clear selection on refresh
         }
     }, [supabase])
@@ -172,7 +178,7 @@ export default function StatsPage() {
                         <DialogTrigger asChild>
                             <Button variant="outline">
                                 <Upload className="mr-2 h-4 w-4" />
-                                Import via Mapping
+                                Import with Mapping
                             </Button>
                         </DialogTrigger>
                         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
@@ -254,7 +260,7 @@ export default function StatsPage() {
                                         {stat.profiles?.full_name || stat.profiles?.email}
                                     </TableCell>
                                     <TableCell>
-                                        {stat.matches ? `${format(new Date(stat.matches.date), 'MM/dd')} vs ${stat.matches.opponent}` : '-'}
+                                        {stat.matches ? `${format(new Date(stat.matches.date), 'yyyy/MM/dd')} vs ${stat.matches.opponent}` : '-'}
                                     </TableCell>
                                     <TableCell>{stat.minutes}</TableCell>
                                     <TableCell>{stat.total_distance ? Math.round(stat.total_distance) : '-'}</TableCell>

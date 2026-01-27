@@ -48,11 +48,6 @@ const sidebarItems = [
         href: '/admin/profiles',
         icon: Users,
     },
-    {
-        title: 'Import Data',
-        href: '/admin/import',
-        icon: FileSpreadsheet,
-    },
 ]
 
 export function AdminSidebar() {

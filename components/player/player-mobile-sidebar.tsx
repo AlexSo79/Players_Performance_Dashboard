@@ -1,6 +1,6 @@
 'use client'
 
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { Menu } from 'lucide-react'
 import { PlayerSidebar } from './player-sidebar'
@@ -17,6 +17,7 @@ export function PlayerMobileSidebar() {
                 </Button>
             </SheetTrigger>
             <SheetContent side="left" className="p-0 w-64">
+                <SheetTitle className="sr-only">Player Navigation</SheetTitle>
                 <div className="pt-4">
                     <PlayerSidebar />
                 </div>
