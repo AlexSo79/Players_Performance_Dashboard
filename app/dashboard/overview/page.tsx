@@ -1,9 +1,9 @@
 import { createClient } from '@/utils/supabase/server'
-import { DashboardView } from '@/components/player/dashboard-view'
+import { OverviewView } from '@/components/player/overview-view'
 import { EmptyState } from '@/components/empty-state'
 import { redirect } from 'next/navigation'
 
-export default async function PerformanceDashboardPage() {
+export default async function OverviewDashboardPage() {
     const supabase = await createClient()
 
     const { data: { user } } = await supabase.auth.getUser()
@@ -33,18 +33,23 @@ export default async function PerformanceDashboardPage() {
         .select('*')
         .eq('player_id', user.id)
         .order('date', { ascending: false })
-        .order('date', { ascending: false })
         .limit(1)
         .single()
 
-    // gameEvents fetch removed as it is now isolated to the standalone overview page
+    const { data: gameEvents } = await supabase
+        .from('game_events')
+        .select(`
+        *,
+        matches(date, opponent, season, competition)
+        `)
+        .eq('player_id', user.id)
 
     return (
         <div className="space-y-6">
             <div>
-                <h2 className="text-3xl font-bold tracking-tight">Performance Stats</h2>
+                <h2 className="text-3xl font-bold tracking-tight">Overview</h2>
                 <p className="text-muted-foreground">
-                    Your physical and technical performance metrics.
+                    Your season at a glance.
                 </p>
             </div>
 
@@ -54,7 +59,7 @@ export default async function PerformanceDashboardPage() {
                     description="You haven't played any matches yet, or the admin hasn't entered your data."
                 />
             ) : (
-                <DashboardView stats={sortedStats} health={health} />
+                <OverviewView stats={sortedStats} health={health} gameEvents={gameEvents || []} />
             )}
         </div>
     )

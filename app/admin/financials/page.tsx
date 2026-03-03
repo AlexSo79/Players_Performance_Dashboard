@@ -21,6 +21,7 @@ import {
     DialogTrigger,
 } from '@/components/ui/dialog'
 import { FinancialsForm } from '@/components/admin/financials-form'
+import { FinancialEntryForm } from '@/components/admin/financial-entry-form'
 import { format } from 'date-fns'
 
 interface FinancialRecord {
@@ -80,28 +81,53 @@ export default function FinancialsPage() {
                         Manage player salaries and market values.
                     </p>
                 </div>
-                <Dialog open={open} onOpenChange={setOpen}>
-                    <DialogTrigger asChild>
-                        <Button>
-                            <PlusCircle className="mr-2 h-4 w-4" />
-                            Manage Financials
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Update Financials</DialogTitle>
-                            <DialogDescription>
-                                Select a player to update their financial data.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <FinancialsForm
-                            onSuccess={() => {
-                                setOpen(false)
-                                fetchFinancials()
-                            }}
-                        />
-                    </DialogContent>
-                </Dialog>
+                <div className="flex gap-2">
+                    <Dialog open={open} onOpenChange={setOpen}>
+                        <DialogTrigger asChild>
+                            <Button variant="outline">
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                Edit Salaries
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Update Basic Financials</DialogTitle>
+                                <DialogDescription>
+                                    Manage salary, market value, and contract info.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <FinancialsForm
+                                onSuccess={() => {
+                                    setOpen(false)
+                                    fetchFinancials()
+                                }}
+                            />
+                        </DialogContent>
+                    </Dialog>
+
+                    <Dialog>
+                        <DialogTrigger asChild>
+                            <Button>
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                Manage Budget & Services
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-3xl">
+                            <DialogHeader>
+                                <DialogTitle>Budget & Services</DialogTitle>
+                                <DialogDescription>
+                                    Set total budget and manage player services.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <FinancialEntryForm
+                                onSuccess={() => {
+                                    // Optionally refresh if we showed budget in the table, but we don't yet.
+                                    fetchFinancials()
+                                }}
+                            />
+                        </DialogContent>
+                    </Dialog>
+                </div>
             </div>
 
             <div className="rounded-md border">

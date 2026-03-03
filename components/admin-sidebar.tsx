@@ -11,7 +11,8 @@ import {
     Activity,
     DollarSign,
     LogOut,
-    FileSpreadsheet
+    FileSpreadsheet,
+    HeartPulse
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { createClient } from '@/utils/supabase/client'
@@ -32,6 +33,11 @@ const sidebarItems = [
         title: 'Player Stats',
         href: '/admin/stats',
         icon: Activity,
+    },
+    {
+        title: 'Health & Wellness',
+        href: '/admin/health',
+        icon: HeartPulse,
     },
     {
         title: 'Game Events',

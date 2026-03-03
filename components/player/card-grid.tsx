@@ -28,6 +28,14 @@ export const CardGrid = ({ metrics, currentStats }: CardGridProps) => (
                 successRate = Math.round((subValue / value) * 100)
             }
 
+            const formatValue = (val: any) => {
+                if (typeof val === 'number') {
+                    // Check if it's an integer to avoid .00, otherwise 2 decimal places
+                    return Number.isInteger(val) ? val : parseFloat(val.toFixed(2));
+                }
+                return val;
+            };
+
             return (
                 <Card key={metric.label}>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -37,10 +45,10 @@ export const CardGrid = ({ metrics, currentStats }: CardGridProps) => (
                         {metric.icon && <metric.icon className={`h-4 w-4 ${metric.color || 'text-muted-foreground'}`} />}
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{value}</div>
+                        <div className="text-2xl font-bold">{formatValue(value)}</div>
                         {subValue !== null && (
                             <p className="text-xs text-muted-foreground">
-                                {subValue} {metric.subLabel}
+                                {formatValue(subValue)} {metric.subLabel}
                                 {successRate !== null && ` (${successRate}%)`}
                             </p>
                         )}

@@ -51,9 +51,14 @@ const statsSchema = z.object({
 
     // High Intensity
     distance_over_14_4_kmh: z.coerce.number().default(0),
+    distance_over_16_kmh: z.coerce.number().default(0),
+    pct_distance_over_16_kmh: z.coerce.number().default(0),
     distance_over_20_kmh: z.coerce.number().default(0),
     distance_over_21_kmh: z.coerce.number().default(0),
+    distance_over_24_kmh: z.coerce.number().default(0),
     distance_over_25_kmh: z.coerce.number().default(0),
+    distance_over_16_kmh_min: z.coerce.number().default(0),
+    distance_over_24_kmh_min: z.coerce.number().default(0),
     number_acc_over_25_kmh: z.coerce.number().default(0),
     distance_hi_min: z.coerce.number().default(0),
     pct_distance_sprint_hi: z.coerce.number().default(0),
@@ -125,7 +130,14 @@ export function StatsForm({ onSuccess, initialData }: StatsFormProps) {
             pct_equivalent_relative_distance: initialData?.pct_equivalent_relative_distance ?? 0,
             pct_ai: initialData?.pct_ai ?? 0,
             distance_over_20_kmh: initialData?.distance_over_20_kmh ?? 0,
+            distance_over_21_kmh: initialData?.distance_over_21_kmh ?? 0,
+            distance_over_24_kmh: initialData?.distance_over_24_kmh ?? 0,
             distance_over_25_kmh: initialData?.distance_over_25_kmh ?? 0,
+            distance_over_14_4_kmh: initialData?.distance_over_14_4_kmh ?? 0,
+            distance_over_16_kmh: initialData?.distance_over_16_kmh ?? 0,
+            pct_distance_over_16_kmh: initialData?.pct_distance_over_16_kmh ?? 0,
+            distance_over_16_kmh_min: initialData?.distance_over_16_kmh_min ?? 0,
+            distance_over_24_kmh_min: initialData?.distance_over_24_kmh_min ?? 0,
             number_acc_over_25_kmh: initialData?.number_acc_over_25_kmh ?? 0,
             distance_hi_min: initialData?.distance_hi_min ?? 0,
             pct_distance_sprint_hi: initialData?.pct_distance_sprint_hi ?? 0,
@@ -268,9 +280,14 @@ export function StatsForm({ onSuccess, initialData }: StatsFormProps) {
                     <h3 className="font-semibold border-b pb-1">High Intensity</h3>
                     <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
                         {renderField("distance_over_14_4_kmh", "Dist > 14.4 km/h")}
+                        {renderField("distance_over_16_kmh", "Dist > 16 km/h")}
+                        {renderField("pct_distance_over_16_kmh", "% Dist > 16")}
                         {renderField("distance_over_20_kmh", "Dist > 20km/h")}
                         {renderField("distance_over_21_kmh", "Dist > 21 km/h")}
+                        {renderField("distance_over_24_kmh", "Dist > 24 km/h")}
                         {renderField("distance_over_25_kmh", "Dist > 25km/h")}
+                        {renderField("distance_over_16_kmh_min", "Dist/Min > 16")}
+                        {renderField("distance_over_24_kmh_min", "Dist/Min > 24")}
                         {renderField("number_acc_over_25_kmh", "# Acc > 2.5", "1")}
                         {renderField("distance_hi_min", "HI Dist/Min")}
                         {renderField("pct_distance_sprint_hi", "% Sprint of HI")}

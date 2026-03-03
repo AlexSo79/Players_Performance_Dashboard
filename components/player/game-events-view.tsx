@@ -28,6 +28,8 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Trophy, Target, Footprints, Shield, Activity, Share2, TrendingUp, AlertCircle } from 'lucide-react'
 import { format } from 'date-fns'
+import { Switch } from '@/components/ui/switch'
+import { Label } from '@/components/ui/label'
 import { CardGrid } from './card-grid'
 
 interface GameEventsViewProps {
@@ -43,6 +45,8 @@ export function GameEventsView({ events }: GameEventsViewProps) {
     const [selectedSeason, setSelectedSeason] = useState<string>('')
     const [selectedCompetition, setSelectedCompetition] = useState<string>('')
     const [selectedMatchId, setSelectedMatchId] = useState<string>('')
+    const [isPer90, setIsPer90] = useState<boolean>(true)
+    const [isFullSeasonMode, setIsFullSeasonMode] = useState<boolean>(true)
 
     // Helpers for defaults
     const defaultSeason = useMemo(() => {
@@ -94,30 +98,103 @@ export function GameEventsView({ events }: GameEventsViewProps) {
     }
 
 
-    // Filter Data for Cards (Single Match)
+    // Filter Data for Cards (Single Match or Full Season Aggregate)
     const currentEvent = useMemo(() => {
-        return events.find(s => s.match_id === activeMatchId) || {}
-    }, [events, activeMatchId])
+        if (!isFullSeasonMode) {
+            return events.find(s => s.match_id === activeMatchId) || {}
+        }
+
+        // Full Season Mode - Aggregate
+        const relevantEvents = events.filter(s =>
+            (s.matches?.season || 'Unknown') === activeSeason
+        )
+
+        if (relevantEvents.length === 0) return {}
+
+        const aggregated: Record<string, any> = { minutes_played: 0 }
+
+        const count = relevantEvents.length;
+        relevantEvents.forEach(e => {
+            for (const key in e) {
+                if (typeof e[key] === 'number') {
+                    aggregated[key] = (aggregated[key] || 0) + e[key];
+                }
+            }
+        })
+
+        // Values remain as cumulative sums for the season
+
+        if (isPer90 && aggregated.minutes_played > 0) {
+            const factor = 90 / aggregated.minutes_played;
+            for (const key in aggregated) {
+                if (key !== 'minutes_played') {
+                    aggregated[key] = aggregated[key] * factor;
+                }
+            }
+        }
+
+        return aggregated as Record<string, any>;
+    }, [events, activeMatchId, isFullSeasonMode, activeSeason, activeCompetition, isPer90])
 
     const currentStats = currentEvent
 
     // Filter Data for Charts (Season + Competition trend)
     const trendData = useMemo(() => {
         return events
-            .filter(s => (s.matches?.season || 'Unknown') === activeSeason && (s.matches?.competition || 'Unknown') === activeCompetition)
+            .filter(s => {
+                const seasonMatch = (s.matches?.season || 'Unknown') === activeSeason;
+                if (isFullSeasonMode) return seasonMatch;
+                return seasonMatch && (s.matches?.competition || 'Unknown') === activeCompetition;
+            })
             .sort((a, b) => new Date(a.matches?.date).getTime() - new Date(b.matches?.date).getTime()) // Oldest to Newest for charts
-            .map(e => ({
-                ...e,
-                date: e.matches ? format(new Date(e.matches.date), 'MM/dd') : '',
-                opponent: e.matches?.opponent,
-            }))
-    }, [events, activeSeason, activeCompetition])
+            .map(e => {
+                const factor = isPer90 && e.minutes_played > 0 ? (90 / e.minutes_played) : 1;
+                // Assert to Record<string, any> first to satisfy TS index signature
+                const scaledEvent: Record<string, any> = { ...e, date: e.matches ? format(new Date(e.matches.date), 'MM/dd') : '', opponent: e.matches?.opponent };
+
+                // Scale numeric metrics for charts
+                for (const key in scaledEvent) {
+                    if (typeof scaledEvent[key] === 'number' && key !== 'minutes_played') {
+                        scaledEvent[key] = (scaledEvent[key] as number) * factor;
+                    }
+                }
+                return scaledEvent;
+            })
+    }, [events, activeSeason, activeCompetition, isPer90])
 
 
     return (
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <h2 className="text-xl font-bold">Match Summary</h2>
+                <div className="flex items-center gap-4">
+                    <h2 className="text-xl font-bold">Match Summary</h2>
+
+                    {/* View Mode Switch */}
+                    <div className="flex items-center space-x-2 bg-muted p-2 rounded-md">
+                        <Label htmlFor="view-mode-events" className="text-sm font-medium">Single Game</Label>
+                        <Switch
+                            id="view-mode-events"
+                            checked={isFullSeasonMode}
+                            onCheckedChange={(checked) => {
+                                setIsFullSeasonMode(checked)
+                                if (!checked) setIsPer90(false)
+                            }}
+                        />
+                        <Label htmlFor="view-mode-events" className="text-sm font-medium">Full Season</Label>
+                    </div>
+
+                    {/* Per 90 Switch */}
+                    <div className="flex items-center space-x-2 bg-muted p-2 rounded-md">
+                        <Label htmlFor="per-90-events" className={`text-sm font-medium ${!isFullSeasonMode ? 'opacity-50' : ''}`}>Cumul.</Label>
+                        <Switch
+                            id="per-90-events"
+                            checked={isPer90}
+                            onCheckedChange={setIsPer90}
+                            disabled={!isFullSeasonMode}
+                        />
+                        <Label htmlFor="per-90-events" className={`text-sm font-medium ${!isFullSeasonMode ? 'opacity-50' : ''}`}>Per 90</Label>
+                    </div>
+                </div>
 
                 <div className="flex flex-wrap gap-2">
                     <Select value={activeSeason} onValueChange={handleSeasonChange}>
@@ -125,12 +202,12 @@ export function GameEventsView({ events }: GameEventsViewProps) {
                         <SelectContent>{seasons.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
                     </Select>
 
-                    <Select value={activeCompetition} onValueChange={handleCompetitionChange} disabled={!activeSeason}>
+                    <Select value={activeCompetition} onValueChange={handleCompetitionChange} disabled={!activeSeason || isFullSeasonMode}>
                         <SelectTrigger className="w-[140px]"><SelectValue placeholder="Competition" /></SelectTrigger>
                         <SelectContent>{competitions.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
                     </Select>
 
-                    <Select value={activeMatchId} onValueChange={setSelectedMatchId} disabled={!activeCompetition}>
+                    <Select value={activeMatchId} onValueChange={setSelectedMatchId} disabled={!activeCompetition || isFullSeasonMode}>
                         <SelectTrigger className="w-[200px]"><SelectValue placeholder="Select Match" /></SelectTrigger>
                         <SelectContent>{matchesList.map(m => <SelectItem key={m.id} value={m.id}>{m.label}</SelectItem>)}</SelectContent>
                     </Select>

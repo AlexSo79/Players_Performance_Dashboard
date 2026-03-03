@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useMemo } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import {
     LineChart,
     Line,
@@ -15,8 +15,19 @@ import {
     AreaChart,
     Area,
     ComposedChart,
+    RadarChart,
+    PolarGrid,
+    PolarAngleAxis,
+    PolarRadiusAxis,
+    Radar,
+    PieChart,
+    Pie,
+    Cell,
+    ScatterChart,
+    Scatter,
+    ZAxis
 } from 'recharts'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
     Select,
@@ -25,10 +36,14 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select'
-import { TrendingUp } from 'lucide-react'
+import { Switch } from '@/components/ui/switch'
+import { Label } from '@/components/ui/label'
+import { TrendingUp, Activity, Zap, Shield, Target } from 'lucide-react'
 import { format } from 'date-fns'
+import { cn } from '@/lib/utils'
 
 interface DashboardViewProps {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     stats: Record<string, any>[]
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -44,14 +59,13 @@ const METRIC_CONFIG = [
 
     // Intensity
     { label: 'Max Speed', key: 'max_speed', unit: 'km/h', category: 'Intensity' },
-    { label: 'Dist > 20km/h', key: 'distance_over_20_kmh', unit: 'm', category: 'Intensity' },
-    { label: 'Dist > 25km/h', key: 'distance_over_25_kmh', unit: 'm', category: 'Intensity' },
+    { label: 'High Speed Running', key: 'high_speed_running', unit: 'm', category: 'Intensity' },
+    { label: 'Sprint Running', key: 'sprint_running', unit: 'm', category: 'Intensity' },
     { label: 'HI Dist/Min', key: 'distance_hi_min', unit: 'm/min', category: 'Intensity' },
     { label: '% Sprint of HI', key: 'pct_distance_sprint_hi', unit: '%', category: 'Intensity' },
     { label: 'Dist > 80% Max', key: 'distance_over_80_pct_max_speed', unit: 'm', category: 'Intensity' },
     { label: 'Dist > 90% Max', key: 'distance_over_90_pct_max_speed', unit: 'm', category: 'Intensity' },
     { label: 'Dist > 14.4km/h', key: 'distance_over_14_4_kmh', unit: 'm', category: 'Intensity' },
-    { label: 'Dist > 21km/h', key: 'distance_over_21_kmh', unit: 'm', category: 'Intensity' },
     { label: 'Dist > 25 W/kg', key: 'distance_over_25_w_kg', unit: 'm', category: 'Intensity' },
 
     // Accelerations
@@ -79,30 +93,56 @@ const METRIC_CONFIG = [
 // Metric Config stays outside component or safely memoized
 // ... (assuming imports are fine as I am replacing from line 70)
 
-export function DashboardView({ stats }: DashboardViewProps) {
+export function DashboardView({ stats, health }: DashboardViewProps) {
+    const enrichedStats = useMemo(() => stats.map(stat => {
+        let hsr = 0;
+        if (typeof stat.distance_over_21_kmh === 'number' && stat.distance_over_21_kmh > 0) hsr = stat.distance_over_21_kmh;
+        else if (typeof stat.distance_over_20_kmh === 'number' && stat.distance_over_20_kmh > 0) hsr = stat.distance_over_20_kmh;
+        else if (typeof stat.distance_over_16_kmh === 'number' && stat.distance_over_16_kmh > 0) hsr = stat.distance_over_16_kmh;
+
+        let sprint = 0;
+        if (typeof stat.distance_over_25_kmh === 'number' && stat.distance_over_25_kmh > 0) sprint = stat.distance_over_25_kmh;
+        else if (typeof stat.distance_over_24_kmh === 'number' && stat.distance_over_24_kmh > 0) sprint = stat.distance_over_24_kmh;
+
+        return { ...stat, high_speed_running: hsr, sprint_running: sprint } as Record<string, any>;
+    }), [stats]);
+
     // 1. Extract Filter Options
-    const seasons = useMemo(() => Array.from(new Set(stats.map(s => s.matches?.season || 'Unknown'))).sort(), [stats])
+    const seasons = useMemo(() => Array.from(new Set(enrichedStats.map(s => s.matches?.season || 'Unknown'))).sort(), [enrichedStats])
+    const sortedStats = enrichedStats;
 
     // State
     const [selectedSeason, setSelectedSeason] = useState<string>('')
     const [selectedCompetition, setSelectedCompetition] = useState<string>('')
     const [selectedMatchId, setSelectedMatchId] = useState<string>('')
+    const [isPer90, setIsPer90] = useState<boolean>(true)
+    const [isFullSeasonMode, setIsFullSeasonMode] = useState<boolean>(true)
 
     // Default Season
     const defaultSeason = useMemo(() => {
-        if (stats.length === 0) return ''
-        const sorted = [...stats].sort((a, b) => new Date(b.matches?.date).getTime() - new Date(a.matches?.date).getTime())
+        if (enrichedStats.length === 0) return ''
+        const sorted = [...enrichedStats].sort((a, b) => new Date(b.matches?.date).getTime() - new Date(a.matches?.date).getTime())
         return sorted[0]?.matches?.season || 'Unknown'
-    }, [stats])
+    }, [enrichedStats])
 
-    // Derived State (Active Selections)
-    const activeSeason = selectedSeason || defaultSeason
+    const [isMounted, setIsMounted] = useState(false);
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
+    // Derived Selection State
+    const activeSeason = selectedSeason || (seasons.length > 0 ? seasons[0] : '')  // Filter Stats based on selection
+    const activeMatch = useMemo(() => {
+        if (!selectedMatchId) return sortedStats[0]
+        return sortedStats.find(s => s.match_id === selectedMatchId) || sortedStats[0]
+    }, [selectedMatchId, sortedStats])
 
     const competitions = useMemo(() => {
         if (!activeSeason) return []
-        const filtered = stats.filter(s => (s.matches?.season || 'Unknown') === activeSeason)
+        const filtered = enrichedStats.filter(s => (s.matches?.season || 'Unknown') === activeSeason)
         return Array.from(new Set(filtered.map(s => s.matches?.competition || 'Unknown'))).sort()
-    }, [stats, activeSeason])
+    }, [enrichedStats, activeSeason])
 
     const activeCompetition = selectedCompetition && competitions.includes(selectedCompetition)
         ? selectedCompetition
@@ -110,7 +150,7 @@ export function DashboardView({ stats }: DashboardViewProps) {
 
     const matchesList = useMemo(() => {
         if (!activeSeason || !activeCompetition) return []
-        return stats
+        return enrichedStats
             .filter(s => (s.matches?.season || 'Unknown') === activeSeason && (s.matches?.competition || 'Unknown') === activeCompetition)
             .map(s => ({
                 id: s.match_id,
@@ -118,7 +158,7 @@ export function DashboardView({ stats }: DashboardViewProps) {
                 date: s.matches?.date
             }))
             .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()) // Newest first
-    }, [stats, activeSeason, activeCompetition])
+    }, [enrichedStats, activeSeason, activeCompetition])
 
     const activeMatchId = selectedMatchId && matchesList.find(m => m.id === selectedMatchId)
         ? selectedMatchId
@@ -138,52 +178,104 @@ export function DashboardView({ stats }: DashboardViewProps) {
 
 
     // Filter Data
+    // In Full Season mode, we need to aggregate the stats. However, if the current component design expects a single match, 
+    // we must average or sum them. For now, since it shows charts, the 'currentStat' for the KPIs might represent the *average*
+    // or *sum* of the season. The user's prompt implies 'cumulative stats of multiple games'.
     const currentStat = useMemo(() => {
-        return stats.find(s => s.match_id === activeMatchId) || {}
-    }, [stats, activeMatchId])
+        if (!isFullSeasonMode) {
+            return enrichedStats.find(s => s.match_id === activeMatchId) || {}
+        }
+
+        // Full Season Mode - Aggregate the active season/competition stats
+        const relevantStats = enrichedStats.filter(s =>
+            (s.matches?.season || 'Unknown') === activeSeason
+        )
+
+        if (relevantStats.length === 0) return {}
+
+        // Create an aggregated stat object
+        const aggregated: Record<string, any> = { minutes: 0 }
+        const count = relevantStats.length;
+
+        METRIC_CONFIG.forEach(metric => {
+            let sum = 0;
+            relevantStats.forEach(stat => {
+                sum += (Number(stat[metric.key]) || 0)
+            })
+            aggregated[metric.key] = sum / count;
+        })
+
+        // Average minutes explicitly
+        aggregated.minutes = relevantStats.reduce((sum, s) => sum + (Number(s.minutes) || 0), 0) / count;
+
+        return aggregated
+    }, [enrichedStats, activeMatchId, isFullSeasonMode, activeSeason, activeCompetition])
 
     // Chart Data - Filtered by Season & Competition for relevant trends
     const filteredStatsForCharts = useMemo(() => {
-        return stats
-            .filter(s => (s.matches?.season || 'Unknown') === activeSeason && (s.matches?.competition || 'Unknown') === activeCompetition)
+        return enrichedStats
+            .filter(s => {
+                const seasonMatch = (s.matches?.season || 'Unknown') === activeSeason;
+                if (isFullSeasonMode) return seasonMatch;
+                return seasonMatch && (s.matches?.competition || 'Unknown') === activeCompetition;
+            })
             .sort((a, b) => new Date(a.matches?.date).getTime() - new Date(b.matches?.date).getTime()) // Oldest to newest for charts
-    }, [stats, activeSeason, activeCompetition])
+    }, [enrichedStats, activeSeason, activeCompetition, isFullSeasonMode])
 
 
-    const chartData = useMemo(() => filteredStatsForCharts.map((stat) => ({
-        date: stat.matches ? format(new Date(stat.matches.date), 'MM/dd') : '',
-        opponent: stat.matches?.opponent,
+    const chartData = useMemo(() => filteredStatsForCharts.map((stat) => {
+        const factor = isPer90 && stat.minutes > 0 ? (90 / stat.minutes) : 1;
 
-        // Volume
-        total_distance: stat.total_distance,
-        distance_min: stat.distance_min,
+        return {
+            date: stat.matches ? format(new Date(stat.matches.date), 'MM/dd') : '',
+            opponent: stat.matches?.opponent,
 
-        // Intensity
-        max_speed: stat.max_speed,
-        distance_over_20_kmh: stat.distance_over_20_kmh,
-        distance_over_25_kmh: stat.distance_over_25_kmh,
+            // Volume
+            total_distance: stat.total_distance * factor,
+            distance_min: stat.distance_min, // Already a rate
 
-        // Accel
-        dist_acc: stat.distance_acc_over_2_5_ms,
-        dist_dec: stat.distance_dec_over_2_5_ms,
-        num_acc: stat.number_acc_over_25_kmh,
+            // Intensity
+            max_speed: stat.max_speed, // Never scale max speed
+            high_speed_running: stat.high_speed_running * factor,
+            sprint_running: stat.sprint_running * factor,
 
-        // Load
-        training_load: stat.training_load,
-        eee: stat.eee,
-        amp: stat.amp,
-        strength_index: stat.strength_index
-    })), [filteredStatsForCharts])
+            // Accel
+            dist_acc: stat.distance_acc_over_2_5_ms * factor,
+            dist_dec: stat.distance_dec_over_2_5_ms * factor,
+            num_acc: stat.number_acc_over_25_kmh * factor,
+
+            // Load
+            training_load: stat.training_load * factor,
+            eee: stat.eee * factor,
+            amp: stat.amp, // Likely a rate (W/kg)
+            strength_index: stat.strength_index
+        }
+    }), [filteredStatsForCharts, isPer90])
+    // ... previous properties were here, they are replaced by the function block above
 
     // Calculate Benchmarks (Max of each metric from history)
     const benchmarks = React.useMemo(() => {
         const maxes: Record<string, number> = {}
+        const doNotScale = ['minutes', 'distance_min', 'max_speed', 'distance_hi_min', 'pct_distance_sprint_hi', 'pct_equivalent_relative_distance', 'distance_acc_hi_min', 'distance_dece_hi_min', 'pct_distance_acc_hi', 'pct_distance_dec_hi', 'strength_index', 'amp', 'player_load', 'pct_ai', 'pct_distance_mphi'];
+
         METRIC_CONFIG.forEach(metric => {
-            const values = stats.map(s => Number(s[metric.key]) || 0)
-            maxes[metric.key] = Math.max(...values, 0)
+            const values = enrichedStats
+                .filter(s => s[metric.key] != null && s[metric.key] !== '') // Ignore missing/empty
+                .map(s => {
+                    const rawValue = Number(s[metric.key]);
+                    if (isNaN(rawValue)) return 0;
+
+                    // Target values must not change based on the Per-90 toggle
+                    return rawValue;
+                })
+
+            // Strategy: Rolling Average + 5%
+            const sum = values.reduce((a, b) => a + b, 0);
+            const average = values.length > 0 ? sum / values.length : 0;
+            maxes[metric.key] = average * 1.05;
         })
         return maxes
-    }, [stats])
+    }, [enrichedStats])
 
     const getTrafficLight = (value: number, benchmark: number) => {
         if (!benchmark) return 'border-border'
@@ -202,8 +294,15 @@ export function DashboardView({ stats }: DashboardViewProps) {
     const renderMetrics = (category: string) => (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-6">
             {METRIC_CONFIG.filter(m => m.category === category).map((metric) => {
-                const value = Number(currentStat[metric.key]) || 0
+                const rawValue = Number(currentStat[metric.key]) || 0
                 const benchmark = benchmarks[metric.key] || 0
+
+                // Do not scale qualitative or already-normalized metrics
+                const doNotScale = ['minutes', 'distance_min', 'max_speed', 'distance_hi_min', 'pct_distance_sprint_hi', 'pct_equivalent_relative_distance', 'distance_acc_hi_min', 'distance_dece_hi_min', 'pct_distance_acc_hi', 'pct_distance_dec_hi', 'strength_index', 'amp', 'player_load', 'pct_ai', 'pct_distance_mphi'];
+                const factor = isPer90 && currentStat.minutes > 0 && !doNotScale.includes(metric.key) ? (90 / currentStat.minutes) : 1;
+
+                const value = rawValue * factor;
+
                 const colorClass = getTrafficLight(value, benchmark)
                 const delta = formatDelta(value, benchmark)
 
@@ -235,10 +334,40 @@ export function DashboardView({ stats }: DashboardViewProps) {
         </div>
     )
 
+    if (!isMounted) return null;
+
     return (
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <h2 className="text-xl font-bold">Session Performance</h2>
+                <div className="flex items-center gap-4">
+                    <h2 className="text-xl font-bold">Session Performance</h2>
+
+                    {/* View Mode Switch */}
+                    <div className="flex items-center space-x-2 bg-muted p-2 rounded-md">
+                        <Label htmlFor="view-mode" className="text-sm font-medium">Single Game</Label>
+                        <Switch
+                            id="view-mode"
+                            checked={isFullSeasonMode}
+                            onCheckedChange={(checked) => {
+                                setIsFullSeasonMode(checked)
+                                if (!checked) setIsPer90(false) // Single game forces cumulative
+                            }}
+                        />
+                        <Label htmlFor="view-mode" className="text-sm font-medium">Full Season</Label>
+                    </div>
+
+                    {/* Per 90 Switch */}
+                    <div className="flex items-center space-x-2 bg-muted p-2 rounded-md">
+                        <Label htmlFor="per-90" className={`text-sm font-medium ${!isFullSeasonMode ? 'opacity-50' : ''}`}>Average</Label>
+                        <Switch
+                            id="per-90"
+                            checked={isPer90}
+                            onCheckedChange={setIsPer90}
+                            disabled={!isFullSeasonMode}
+                        />
+                        <Label htmlFor="per-90" className={`text-sm font-medium ${!isFullSeasonMode ? 'opacity-50' : ''}`}>Per 90</Label>
+                    </div>
+                </div>
 
                 <div className="flex flex-wrap gap-2">
                     {/* Season Select */}
@@ -254,7 +383,7 @@ export function DashboardView({ stats }: DashboardViewProps) {
                     </Select>
 
                     {/* Competition Select */}
-                    <Select value={activeCompetition} onValueChange={handleCompetitionChange} disabled={!activeSeason}>
+                    <Select value={activeCompetition} onValueChange={handleCompetitionChange} disabled={!activeSeason || isFullSeasonMode}>
                         <SelectTrigger className="w-[140px]">
                             <SelectValue placeholder="Competition" />
                         </SelectTrigger>
@@ -266,7 +395,7 @@ export function DashboardView({ stats }: DashboardViewProps) {
                     </Select>
 
                     {/* Match Select */}
-                    <Select value={activeMatchId} onValueChange={setSelectedMatchId} disabled={!activeCompetition}>
+                    <Select value={activeMatchId} onValueChange={setSelectedMatchId} disabled={!activeCompetition || isFullSeasonMode}>
                         <SelectTrigger className="w-[200px]">
                             <SelectValue placeholder="Select Match" />
                         </SelectTrigger>
@@ -325,7 +454,7 @@ export function DashboardView({ stats }: DashboardViewProps) {
                     {renderMetrics('Intensity')}
                     <div className="grid gap-4 md:grid-cols-2">
                         <Card>
-                            <CardHeader><CardTitle>High Speed Distance (&#62;20km/h)</CardTitle></CardHeader>
+                            <CardHeader><CardTitle>High Speed Running</CardTitle></CardHeader>
                             <CardContent className="h-[300px]">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <AreaChart data={chartData}>
@@ -333,7 +462,7 @@ export function DashboardView({ stats }: DashboardViewProps) {
                                         <XAxis dataKey="date" />
                                         <YAxis />
                                         <Tooltip />
-                                        <Area type="monotone" dataKey="distance_over_20_kmh" stroke="#f59e0b" fill="#fcd34d" name="HSR (m)" />
+                                        <Area type="monotone" dataKey="high_speed_running" stroke="#f59e0b" fill="#fcd34d" name="HSR (m)" />
                                     </AreaChart>
                                 </ResponsiveContainer>
                             </CardContent>

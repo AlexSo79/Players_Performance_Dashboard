@@ -145,8 +145,8 @@ export function BulkImportForm({ onSuccess }: BulkImportFormProps) {
         setIsSubmitting(false)
     }
 
-    const exampleCSV = `minutes,total_distance,distance_min,training_load,max_speed,distance_over_20_kmh,distance_over_25_kmh,number_acc_over_25_kmh,distance_acc_over_2_5_ms,distance_dec_over_2_5_ms,distance_hi_min,distance_acc_hi_min,distance_dece_hi_min,distance_mphi,eee,strength_index,pct_distance_sprint_hi,pct_distance_acc_hi,pct_distance_dec_hi,pct_distance_mphi,amp,equivalent_relative_distance,pct_equivalent_relative_distance,distance_over_80_pct_max_speed,distance_over_90_pct_max_speed,pct_ai,player_load,distance_over_14_4_kmh,distance_over_21_kmh,distance_over_25_w_kg,number_acc_over_3_ms,number_dec_under_minus_3_ms
-90,10500,116.7,450,32.5,1200,350,15,400,380,12.5,5.2,4.8,1100,2500,85,12,8,7,65,350,11000,104,800,400,92,500,1500,400,750,20,18`
+    const exampleCSV = `minutes,total_distance,distance_min,training_load,max_speed,distance_over_16_kmh,pct_distance_over_16_kmh,distance_over_24_kmh,distance_over_16_kmh_min,distance_over_24_kmh_min,distance_over_20_kmh,distance_over_25_kmh,number_acc_over_25_kmh,distance_acc_over_2_5_ms,distance_dec_over_2_5_ms,distance_hi_min,distance_acc_hi_min,distance_dece_hi_min,distance_mphi,eee,strength_index,pct_distance_sprint_hi,pct_distance_acc_hi,pct_distance_dec_hi,pct_distance_mphi,amp,equivalent_relative_distance,pct_equivalent_relative_distance,distance_over_80_pct_max_speed,distance_over_90_pct_max_speed,pct_ai,player_load,distance_over_14_4_kmh,distance_over_21_kmh,distance_over_25_w_kg,number_acc_over_3_ms,number_dec_under_minus_3_ms
+90,10500,116.7,450,32.5,2000,19,250,22,2.7,1200,350,15,400,380,12.5,5.2,4.8,1100,2500,85,12,8,7,65,350,11000,104,800,400,92,500,1500,400,750,20,18`
 
     return (
         <div className="space-y-6">

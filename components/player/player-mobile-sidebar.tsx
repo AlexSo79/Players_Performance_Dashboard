@@ -4,10 +4,19 @@ import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/s
 import { Button } from '@/components/ui/button'
 import { Menu } from 'lucide-react'
 import { PlayerSidebar } from './player-sidebar'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 export function PlayerMobileSidebar() {
     const [open, setOpen] = useState(false)
+    const [isMounted, setIsMounted] = useState(false)
+
+    useEffect(() => {
+        setIsMounted(true)
+    }, [])
+
+    if (!isMounted) {
+        return null
+    }
 
     return (
         <Sheet open={open} onOpenChange={setOpen}>

@@ -4,9 +4,14 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { LayoutDashboard, Activity, Trophy } from 'lucide-react'
+import { LayoutDashboard, Activity, Trophy, DollarSign } from 'lucide-react'
 
 const sidebarItems = [
+    {
+        title: 'Overview',
+        href: '/dashboard/overview',
+        icon: LayoutDashboard,
+    },
     {
         title: 'Performance Stats',
         href: '/dashboard/performance',
@@ -16,6 +21,11 @@ const sidebarItems = [
         title: 'Game Events',
         href: '/dashboard/game-events',
         icon: Trophy,
+    },
+    {
+        title: 'Financials',
+        href: '/dashboard/financials',
+        icon: DollarSign,
     },
 ]
 
