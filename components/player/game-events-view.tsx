@@ -170,8 +170,8 @@ export function GameEventsView({ events }: GameEventsViewProps) {
                     <h2 className="text-xl font-bold">Match Summary</h2>
 
                     {/* View Mode Switch */}
-                    <div className="flex items-center space-x-2 bg-muted p-2 rounded-md">
-                        <Label htmlFor="view-mode-events" className="text-sm font-medium">Single Game</Label>
+                    <div className="flex items-center space-x-2 bg-muted p-2 rounded-md shrink-0">
+                        <Label htmlFor="view-mode-events" className="text-xs sm:text-sm font-medium">Single</Label>
                         <Switch
                             id="view-mode-events"
                             checked={isFullSeasonMode}
@@ -180,47 +180,51 @@ export function GameEventsView({ events }: GameEventsViewProps) {
                                 if (!checked) setIsPer90(false)
                             }}
                         />
-                        <Label htmlFor="view-mode-events" className="text-sm font-medium">Full Season</Label>
+                        <Label htmlFor="view-mode-events" className="text-xs sm:text-sm font-medium">Season</Label>
                     </div>
 
                     {/* Per 90 Switch */}
-                    <div className="flex items-center space-x-2 bg-muted p-2 rounded-md">
-                        <Label htmlFor="per-90-events" className={`text-sm font-medium ${!isFullSeasonMode ? 'opacity-50' : ''}`}>Cumul.</Label>
+                    <div className="flex items-center space-x-2 bg-muted p-2 rounded-md shrink-0">
+                        <Label htmlFor="per-90-events" className={`text-xs sm:text-sm font-medium ${!isFullSeasonMode ? 'opacity-50' : ''}`}>Cumul.</Label>
                         <Switch
                             id="per-90-events"
                             checked={isPer90}
                             onCheckedChange={setIsPer90}
                             disabled={!isFullSeasonMode}
                         />
-                        <Label htmlFor="per-90-events" className={`text-sm font-medium ${!isFullSeasonMode ? 'opacity-50' : ''}`}>Per 90</Label>
+                        <Label htmlFor="per-90-events" className={`text-xs sm:text-sm font-medium ${!isFullSeasonMode ? 'opacity-50' : ''}`}>Per 90</Label>
                     </div>
                 </div>
 
-                <div className="flex flex-wrap gap-2">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 w-full md:w-auto">
                     <Select value={activeSeason} onValueChange={handleSeasonChange}>
-                        <SelectTrigger className="w-[140px]"><SelectValue placeholder="Season" /></SelectTrigger>
+                        <SelectTrigger className="w-full"><SelectValue placeholder="Season" /></SelectTrigger>
                         <SelectContent>{seasons.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
                     </Select>
 
                     <Select value={activeCompetition} onValueChange={handleCompetitionChange} disabled={!activeSeason || isFullSeasonMode}>
-                        <SelectTrigger className="w-[140px]"><SelectValue placeholder="Competition" /></SelectTrigger>
+                        <SelectTrigger className="w-full"><SelectValue placeholder="Competition" /></SelectTrigger>
                         <SelectContent>{competitions.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
                     </Select>
 
-                    <Select value={activeMatchId} onValueChange={setSelectedMatchId} disabled={!activeCompetition || isFullSeasonMode}>
-                        <SelectTrigger className="w-[200px]"><SelectValue placeholder="Select Match" /></SelectTrigger>
-                        <SelectContent>{matchesList.map(m => <SelectItem key={m.id} value={m.id}>{m.label}</SelectItem>)}</SelectContent>
-                    </Select>
+                    <div className="col-span-2 md:col-span-1">
+                        <Select value={activeMatchId} onValueChange={setSelectedMatchId} disabled={!activeCompetition || isFullSeasonMode}>
+                            <SelectTrigger className="w-full"><SelectValue placeholder="Select Match" /></SelectTrigger>
+                            <SelectContent>{matchesList.map(m => <SelectItem key={m.id} value={m.id}>{m.label}</SelectItem>)}</SelectContent>
+                        </Select>
+                    </div>
                 </div>
             </div>
 
             <Tabs defaultValue="overview" className="space-y-4">
-                <TabsList>
-                    <TabsTrigger value="overview">Overview</TabsTrigger>
-                    <TabsTrigger value="attacking">Attacking</TabsTrigger>
-                    <TabsTrigger value="passing">Passing</TabsTrigger>
-                    <TabsTrigger value="defensive">Defensive</TabsTrigger>
-                </TabsList>
+                <div className="overflow-x-auto pb-2 -mb-2">
+                    <TabsList className="flex w-max min-w-full">
+                        <TabsTrigger value="overview" className="flex-1">Overview</TabsTrigger>
+                        <TabsTrigger value="attacking" className="flex-1">Attacking</TabsTrigger>
+                        <TabsTrigger value="passing" className="flex-1">Passing</TabsTrigger>
+                        <TabsTrigger value="defensive" className="flex-1">Defensive</TabsTrigger>
+                    </TabsList>
+                </div>
 
                 <TabsContent value="overview" className="space-y-4">
                     <CardGrid currentStats={currentStats} metrics={[
